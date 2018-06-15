@@ -1,21 +1,46 @@
 import terminal
+import strutils
+import os
 
 type Window = object
-  h: int
   w: int
-  y: int
+  h: int
   x: int
+  y: int
+  cursorXPosi: int
+  cursorYPosi: int
+  buffer: string
 
-
-proc createWindow(h, w, y, x :int): Window =
-  result.h = h
+proc createWindow(w, h, x, y: int): Window =
   result.w = w
-  result.y = y
+  result.h = h
   result.x = x
+  result.y = y
+  cursorXPosi = x
+  cursorYPosi = y
+  result.buffer = ""
+
+proc windowWrite(win: Window, str: string): Window =
+  stdout.setCursorPos(win.w, win.h)
+  let buffer = [win.buffer, str]
+  stdout.write(buffer.join)
+  result.buffer = buffer.join
+
+proc focusWindow(win: Window, x, y: int): Window =
+  var xPosi = win.w + x
+  if win.w + win.x < xPosi:
+    xPosi = win.w + win.x
+
+  var yPosi = win.h + y
+  if win.h + win.y < yPosi:
+    yPosi = win.h + win.y
+
+  stdout.setCursorPos(xPosi, yPosi)
+
+  result.cursorXPosi = xPosi
+  result.cursorYPosi = yPosi
 
 when isMainModule:
-  var win = createWindow(1 ,1 ,1 ,1)
-  doAssert(win.h == 1)
-  doAssert(win.w == 1)
-  doAssert(win.y == 1)
-  doAssert(win.x == 1)
+  stdout.eraseScreen()
+  var win = createWindow(10, 10, 5, 5)
+  win = windowWrite(win, "Hello")
