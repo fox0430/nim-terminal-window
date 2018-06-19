@@ -3,44 +3,45 @@ import strutils
 import os
 
 type Window = object
-  w: int
-  h: int
-  x: int
-  y: int
+  width: int
+  height: int
+  beginX: int
+  beginY: int
   cursorXPosi: int
   cursorYPosi: int
   buffer: string
 
-proc createWindow(w, h, x, y: int): Window =
-  result.w = w
-  result.h = h
-  result.x = x
-  result.y = y
-  cursorXPosi = x
-  cursorYPosi = y
+proc newwin(w, h, x, y: int): Window =
+  result.width = w
+  result.height = h
+  result.beginX = x
+  result.beginY = y
+  result.cursorXPosi = x
+  result.cursorYPosi = y
   result.buffer = ""
 
-proc windowWrite(win: Window, str: string): Window =
-  stdout.setCursorPos(win.w, win.h)
-  let buffer = [win.buffer, str]
-  stdout.write(buffer.join)
-  result.buffer = buffer.join
+proc wmove(win: var Window, x, y: int) =
+  var countBufferLen = 0
 
-proc focusWindow(win: Window, x, y: int): Window =
-  var xPosi = win.w + x
-  if win.w + win.x < xPosi:
-    xPosi = win.w + win.x
+  for row in y..win.height - 1:
+    for col in x..win.width - 1:
+      stdout.setCursorPos(win.beginX + col, win.beginY + row)
+      if countBufferLen < win.buffer.len:
+        stdout.write(win.buffer[countBufferLen])
+        inc(countBufferLen)
+      else:
+        stdout.write("A")
+  stdout.setCursorPos(win.beginX + x, win.beginY + y)
+  win.cursorXPosi = win.beginX + x
+  win.cursorYPosi = win.beginY + y
 
-  var yPosi = win.h + y
-  if win.h + win.y < yPosi:
-    yPosi = win.h + win.y
+proc wgetch(win: Window): char =
+  stdout.setCursorPos(win.cursorXPosi, win.cursorYPosi)
+  result = getch()
 
-  stdout.setCursorPos(xPosi, yPosi)
-
-  result.cursorXPosi = xPosi
-  result.cursorYPosi = yPosi
 
 when isMainModule:
   stdout.eraseScreen()
-  var win = createWindow(10, 10, 5, 5)
-  win = windowWrite(win, "Hello")
+  var win = newwin(10, 10, 5, 5)
+  wmove(win, 0, 0)
+  var key = wgetch(win)
