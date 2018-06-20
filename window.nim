@@ -30,7 +30,7 @@ proc wmove(win: var Window, x, y: int) =
         stdout.write(win.buffer[countBufferLen])
         inc(countBufferLen)
       else:
-        stdout.write("A")
+        stdout.write(" ")
   stdout.setCursorPos(win.beginX + x, win.beginY + y)
   win.cursorXPosi = win.beginX + x
   win.cursorYPosi = win.beginY + y
@@ -39,9 +39,14 @@ proc wgetch(win: Window): char =
   stdout.setCursorPos(win.cursorXPosi, win.cursorYPosi)
   result = getch()
 
+proc waddstr(win: var Window, str: string) =
+  let tmpBuffer = [win.buffer, str]
+  win.buffer = tmpBuffer.join
+  wmove(win, win.cursorXPosi, win.cursorYPosi)
 
 when isMainModule:
   stdout.eraseScreen()
   var win = newwin(10, 10, 5, 5)
   wmove(win, 0, 0)
+  waddstr(win, "Hello")
   var key = wgetch(win)
