@@ -1,6 +1,8 @@
 import terminal
 import strutils
 import os
+import unicode
+import sequtils
 
 type Window = object
   width: int
@@ -9,7 +11,8 @@ type Window = object
   beginY: int
   cursorXPosi: int
   cursorYPosi: int
-  buffer: string
+  buffer: seq[seq[Rune]]
+  bufferLen: int
 
 proc newwin(w, h, x, y: int): Window =
   result.width = w
@@ -18,35 +21,37 @@ proc newwin(w, h, x, y: int): Window =
   result.beginY = y
   result.cursorXPosi = x
   result.cursorYPosi = y
-  result.buffer = ""
+
+  result.buffer = @[]
+  for i in 0..h - 1:
+    result.buffer.add @[]
+    for j in 0..w - 1:
+      result.buffer[i].add "A".toRunes
+
 
 proc wmove(win: var Window, x, y: int) =
-  var countBufferLen = 0
-
-  for row in y..win.height - 1:
-    for col in x..win.width - 1:
-      stdout.setCursorPos(win.beginX + col, win.beginY + row)
-      if countBufferLen < win.buffer.len:
-        stdout.write(win.buffer[countBufferLen])
-        inc(countBufferLen)
-      else:
-        stdout.write(" ")
-  stdout.setCursorPos(win.beginX + x, win.beginY + y)
+  stdout.setCursorPos(win.beginX, win.beginY)
+  for row in 0..win.height - 1:
+    for cal in 0.. win.width - 1:
+      stdout.setCursorPos(win.beginX + cal, win.beginY + row)
+      stdout.write(win.buffer[row][cal])
   win.cursorXPosi = win.beginX + x
   win.cursorYPosi = win.beginY + y
+  stdout.setCursorPos(win.cursorXPosi, win.cursorYPosi)
 
 proc wgetch(win: Window): char =
   stdout.setCursorPos(win.cursorXPosi, win.cursorYPosi)
   result = getch()
 
 proc waddstr(win: var Window, str: string) =
-  let tmpBuffer = [win.buffer, str]
-  win.buffer = tmpBuffer.join
-  wmove(win, win.cursorXPosi, win.cursorYPosi)
+  var countStrLen = 0
+  for row in 0..win.height - 1:
+    for cal in 0.. win.width - 1:
+      win.buffer[row][cal] = str[countStrLen]
+      inc(countStrLen)
 
 when isMainModule:
   stdout.eraseScreen()
   var win = newwin(10, 10, 5, 5)
-  wmove(win, 0, 0)
-  waddstr(win, "Hello")
+  wmove(win, 9, 9)
   var key = wgetch(win)
