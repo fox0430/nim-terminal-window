@@ -28,13 +28,13 @@ proc newwin(w, h, x, y: int): Window =
     for j in 0 ..< w:
       result.buffer[i].add " ".toRunes
 
-
 proc wmove(win: var Window, x, y: int) =
   stdout.setCursorPos(win.beginX, win.beginY)
   for row in 0 ..< win.height:
     for cal in 0 ..< win.width:
-      stdout.setCursorPos(win.beginX + cal, win.beginY + row)
-      stdout.write(win.buffer[row][cal])
+      stdout.setCursorPos(win.beginX + cal + 1, win.beginY + row + 1)
+      stdout.write win.buffer[row][cal]
+
   win.cursorXPosi = win.beginX + x
   win.cursorYPosi = win.beginY + y
   stdout.setCursorPos(win.cursorXPosi, win.cursorYPosi)
@@ -43,9 +43,8 @@ proc wgetch(win: Window): char =
   stdout.setCursorPos(win.cursorXPosi, win.cursorYPosi)
   result = getch()
 
-proc waddstr(win: var Window, str: string) =
+proc waddstr(win: var Window, rstr: seq[Rune]) =
   var countStrLen = 0
-  let rstr = str.toRunes
   for row in 0 ..< win.height:
     for cal in 0 ..< win.width:
       win.buffer[row][cal] = rstr[countStrLen]
@@ -56,8 +55,8 @@ proc waddstr(win: var Window, str: string) =
 
 when isMainModule:
   stdout.eraseScreen()
-  var win = newwin(10, 10, 5, 5)
-  wmove(win, 0, 0)
-  waddstr(win, "Hello")
+  var win = newwin(10, 10, 0, 0)
+  var ch = "X".toRunes
+  waddstr(win, ch)
   wmove(win, 0, 0)
   var key = getch()
